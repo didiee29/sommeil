@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sommeil">
+<title>Sommeil · Djaden</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c0e;
+  --surface:#161618;
+  --surface2:#1e1e22;
+  --border:#2c2c30;
+  --text:#f0ede8;
+  --muted:#6e6b66;
+  --accent:#c8b89a;
+  --green:#4caf82;
+  --red:#e05c5c;
+  --amber:#d4913a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overscroll-behavior:none}
+body{padding:env(safe-area-inset-top,20px) 0 calc(env(safe-area-inset-bottom,20px) + 20px)}
+
+.header{padding:28px 20px 20px;display:flex;align-items:flex-end;justify-content:space-between}
+.header-eyebrow{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.header-title{font-family:'DM Serif Display',serif;font-size:28px;line-height:1.1}
+.header-date{font-size:13px;color:var(--muted);margin-top:3px}
+.header-badge{width:38px;height:38px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+
+.score-hero{margin:0 16px 14px;background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:22px 20px;display:flex;align-items:center;gap:20px;position:relative;overflow:hidden}
+.score-hero::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(200,184,154,.07) 0%,transparent 70%);pointer-events:none}
+.score-ring-wrap{position:relative;flex-shrink:0}
+.score-number{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.score-number span:first-child{font-family:'DM Serif Display',serif;font-size:32px;line-height:1}
+.score-number span:last-child{font-size:10px;color:var(--muted);letter-spacing:.5px;margin-top:1px}
+.score-qual{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--green);background:rgba(76,175,130,.1);border:1px solid rgba(76,175,130,.2);border-radius:6px;padding:3px 8px;margin-bottom:8px}
+.score-label{font-family:'DM Serif Display',serif;font-size:21px;margin-bottom:7px}
+.score-meta{font-size:12px;color:var(--muted);line-height:1.65}
+.score-meta strong{color:var(--text);font-weight:500}
+
+.metrics-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 16px 14px}
+.metric-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 12px}
+.metric-lbl{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.metric-val{font-family:'DM Serif Display',serif;font-size:20px;line-height:1;margin-bottom:4px}
+.metric-sub{font-size:11px}
+.metric-bar{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.metric-bar-fill{height:100%;border-radius:2px}
+
+.section{margin:0 16px 14px}
+.section-head{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-left:2px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:18px 16px}
+
+.phase-row{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.phase-row:last-child{margin-bottom:0}
+.phase-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.phase-name{font-size:13px;color:var(--muted);width:88px;flex-shrink:0}
+.phase-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.phase-fill{height:100%;border-radius:3px;width:0;transition:width 1.1s cubic-bezier(.4,0,.2,1)}
+.phase-vals{display:flex;flex-direction:column;align-items:flex-end;width:52px;flex-shrink:0}
+.phase-vals span:first-child{font-size:12px;font-weight:500;color:var(--text)}
+.phase-vals span:last-child{font-size:10px;color:var(--muted)}
+
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* RESSENTI */
+.ressenti-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:16px}
+.ressenti-emoji{font-size:28px;margin-bottom:8px}
+.ressenti-label{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}
+.ressenti-text{font-size:13px;color:var(--muted);font-style:italic;line-height:1.5}
+
+/* ANALYSE EXPERTE */
+.analyse-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;overflow:hidden}
+.analyse-header{padding:14px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.analyse-avatar{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#2a2a3a,#1a1a28);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px}
+.analyse-byline{font-size:11px;color:var(--muted)}
+.analyse-byline strong{color:var(--accent);font-weight:500}
+.analyse-body{padding:14px 16px}
+.analyse-body p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:10px}
+.analyse-body p:last-child{margin-bottom:0}
+.analyse-body strong{color:var(--text);font-weight:500}
+.analyse-loading{padding:20px 16px;display:flex;align-items:center;gap:10px;display:none}
+.loading-dots{display:flex;gap:4px}
+.loading-dots span{width:5px;height:5px;border-radius:50%;background:var(--muted);animation:pulse 1.2s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
+.analyse-error{padding:14px 16px;font-size:13px;color:var(--red)}
+
+.refresh-btn{width:100%;padding:13px;background:transparent;border:none;border-top:1px solid var(--border);font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;letter-spacing:.3px;transition:background .2s}
+.refresh-btn:active{background:var(--border)}
+
+.week-chart{display:flex;align-items:flex-end;gap:6px;height:64px}
+.wc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.wc-bar{width:100%;border-radius:4px 4px 2px 2px;min-height:4px}
+.wc-label{font-size:10px;color:var(--muted)}
+.wc-today .wc-label{color:var(--accent);font-weight:500}
+
+.obs-row{display:flex;gap:10px;margin-bottom:12px}
+.obs-row:last-child{margin-bottom:0}
+.obs-line{width:2px;flex-shrink:0;border-radius:2px;min-height:36px}
+.obs-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.obs-text{font-size:12px;color:var(--muted);line-height:1.5}
+
+.footer{text-align:center;padding:16px 20px 4px;font-size:11px;color:var(--muted)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.score-hero{animation:fadeUp .35s ease both}
+.metrics-row{animation:fadeUp .35s .07s ease both}
+.s1{animation:fadeUp .35s .12s ease both}
+.s2{animation:fadeUp .35s .17s ease both}
+.s3{animation:fadeUp .35s .22s ease both}
+.s4{animation:fadeUp .35s .27s ease both}
+.s5{animation:fadeUp .35s .32s ease both}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-eyebrow">Djaden · Apple Watch</div>
+    <div class="header-title">Sommeil</div>
+    <div class="header-date">19 mai 2026</div>
+  </div>
+  <div class="header-badge">
+    <svg width="18" height="22" viewBox="0 0 18 22" fill="none">
+      <rect x="1" y="4" width="16" height="17" rx="3.5" stroke="#f0ede8" stroke-width="1.3"/>
+      <path d="M6 4V3a3 3 0 0 1 6 0v1" stroke="#f0ede8" stroke-width="1.3" stroke-linecap="round"/>
+      <circle cx="9" cy="13" r="1.5" fill="#f0ede8"/>
+    </svg>
+  </div>
+</div>
+
+<!-- SCORE -->
+<div class="score-hero">
+  <div class="score-ring-wrap">
+    <svg width="90" height="90" viewBox="0 0 90 90">
+      <circle cx="45" cy="45" r="36" fill="none" stroke="var(--border)" stroke-width="5"/>
+      <circle cx="45" cy="45" r="36" fill="none" stroke="var(--accent)" stroke-width="5"
+        stroke-dasharray="226.2" stroke-dashoffset="31.7"
+        stroke-linecap="round" transform="rotate(-90 45 45)"/>
+    </svg>
+    <div class="score-number"><span>86</span><span>/100</span></div>
+  </div>
+  <div>
+    <div class="score-qual">
+      <svg width="6" height="6"><circle cx="3" cy="3" r="3" fill="var(--green)"/></svg>
+      Élevé
+    </div>
+    <div class="score-label">Bonne nuit</div>
+    <div class="score-meta">
+      Couché à <strong>23h09</strong><br>
+      Levé vers <strong>06h53</strong><br>
+      <strong>7h32</strong> de sommeil
+    </div>
+  </div>
+</div>
+
+<!-- METRICS -->
+<div class="metrics-row">
+  <div class="metric-card">
+    <div class="metric-lbl">Durée</div>
+    <div class="metric-val">7h32</div>
+    <div class="metric-sub" style="color:var(--green)">48 / 50</div>
+    <div class="metric-bar"><div class="metric-bar-fill" style="width:96%;background:var(--green)"></div></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-lbl">Coucher</div>
+    <div class="metric-val">29/30</div>
+    <div class="metric-sub" style="color:var(--accent)">−1h10 moy.</div>
+    <div class="metric-bar"><div class="metric-bar-fill" style="width:97%;background:var(--accent)"></div></div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-lbl">Réveils</div>
+    <div class="metric-val">9/20</div>
+    <div class="metric-sub" style="color:var(--red)">10 réveils</div>
+    <div class="metric-bar"><div class="metric-bar-fill" style="width:45%;background:var(--red)"></div></div>
+  </div>
+</div>
+
+<!-- PHASES -->
+<div class="section s1">
+  <div class="section-head">Phases de sommeil</div>
+  <div class="card">
+    <div class="phase-row">
+      <div class="phase-dot" style="background:#6b7fff"></div>
+      <div class="phase-name">Profond</div>
+      <div class="phase-track"><div class="phase-fill" style="background:#6b7fff" data-w="18%"></div></div>
+      <div class="phase-vals"><span>~1h21</span><span>18%</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-dot" style="background:#4a8fdd"></div>
+      <div class="phase-name">Lent</div>
+      <div class="phase-track"><div class="phase-fill" style="background:#4a8fdd" data-w="46%"></div></div>
+      <div class="phase-vals"><span>~3h28</span><span>46%</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-dot" style="background:#7ecfc4"></div>
+      <div class="phase-name">Paradoxal</div>
+      <div class="phase-track"><div class="phase-fill" style="background:#7ecfc4" data-w="24%"></div></div>
+      <div class="phase-vals"><span>~1h48</span><span>24%</span></div>
+    </div>
+    <div class="phase-row">
+      <div class="phase-dot" style="background:#e05c5c"></div>
+      <div class="phase-name">Éveil</div>
+      <div class="phase-track"><div class="phase-fill" style="background:#e05c5c" data-w="12%"></div></div>
+      <div class="phase-vals"><span>~0h54</span><span>12%</span></div>
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div><div style="font-size:11px;color:var(--muted)">Au lit</div><div style="font-size:14px;font-weight:500;margin-top:2px">7h44</div></div>
+      <div style="text-align:center"><div style="font-size:11px;color:var(--muted)">Effectif</div><div style="font-size:14px;font-weight:500;margin-top:2px">7h32</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Signes vitaux</div><div style="font-size:14px;font-weight:500;margin-top:2px">Typique</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- RESSENTI -->
+<div class="section s2">
+  <div class="section-head">Mon ressenti</div>
+  <div class="ressenti-card">
+    <div class="ressenti-emoji">😌</div>
+    <div class="ressenti-label">Bien, ça va</div>
+    <div class="ressenti-text">Réveil correct ce matin — pas de fatigue particulière malgré les 10 réveils nocturnes.</div>
+  </div>
+</div>
+
+<!-- HISTORIQUE -->
+<div class="section s3">
+  <div class="section-head">Historique · 7 jours</div>
+  <div class="card">
+    <div class="week-chart" id="week-chart"></div>
+    <div style="display:flex;justify-content:space-between;margin-top:4px" id="week-labels"></div>
+    <div class="divider"></div>
+    <div style="display:flex;justify-content:space-between">
+      <div><div style="font-size:11px;color:var(--muted)">Moyenne</div><div style="font-size:14px;font-weight:500;margin-top:2px">7h32</div></div>
+      <div style="text-align:center"><div style="font-size:11px;color:var(--muted)">Score moy.</div><div style="font-size:14px;font-weight:500;margin-top:2px">86</div></div>
+      <div style="text-align:right"><div style="font-size:11px;color:var(--muted)">Nuits suivies</div><div style="font-size:14px;font-weight:500;margin-top:2px">1</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYSE EXPERTE -->
+<div class="section s4">
+  <div class="section-head">Analyse · Expert sommeil</div>
+  <div class="analyse-card" id="analyse-card">
+    <div class="analyse-header">
+      <div class="analyse-avatar">🧠</div>
+      <div>
+        <div style="font-size:13px;font-weight:500;color:var(--text)">Dr. Sleep</div>
+        <div class="analyse-byline">Analyse générée par <strong>Claude</strong></div>
+      </div>
+    </div>
+    <div class="analyse-loading" id="analyse-loading">
+      <div class="loading-dots"><span></span><span></span><span></span></div>
+      <span style="font-size:13px;color:var(--muted)">Analyse en cours…</span>
+    </div>
+    <div class="analyse-body" id="analyse-body">
+      <p>Appuie sur le bouton ci-dessous pour générer une analyse experte de ta nuit.</p>
+    </div>
+    <div class="analyse-error" id="analyse-error" style="display:none"></div>
+    <button class="refresh-btn" id="analyse-btn" onclick="runAnalyse()">
+      <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><path d="M11 6.5A4.5 4.5 0 1 1 6.5 2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M9 2h2.5V4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Générer l'analyse experte
+    </button>
+  </div>
+</div>
+
+<div class="footer">Tracker sommeil · Apple Watch · Djaden</div>
+
+<script>
+// Phases animation
+setTimeout(()=>{
+  document.querySelectorAll('.phase-fill').forEach(el=>{
+    el.style.width = el.dataset.w;
+  });
+}, 300);
+
+// Week chart
+const nights = [
+  {h:7.53, label:'19/05', today:true}
+];
+const maxH = 8;
+const chartEl = document.getElementById('week-chart');
+const labelsEl = document.getElementById('week-labels');
+
+// Empty cols
+for(let i=0;i<6;i++){
+  const col=document.createElement('div');col.className='wc-col';
+  const bar=document.createElement('div');bar.className='wc-bar';
+  bar.style.height='4px';bar.style.background='transparent';
+  col.appendChild(bar);chartEl.appendChild(col);
+  const lbl=document.createElement('span');lbl.style.fontSize='10px';lbl.style.color='transparent';lbl.textContent='–';
+  labelsEl.appendChild(lbl);
+}
+nights.forEach(n=>{
+  const col=document.createElement('div');
+  col.className='wc-col'+(n.today?' wc-today':'');
+  const bar=document.createElement('div');bar.className='wc-bar';
+  bar.style.height=Math.round(n.h/maxH*56)+'px';
+  bar.style.background=n.today?'var(--accent)':'var(--muted)';
+  col.appendChild(bar);chartEl.appendChild(col);
+  const lbl=document.createElement('span');
+  lbl.style.fontSize='10px';
+  lbl.style.color=n.today?'var(--accent)':'var(--muted)';
+  if(n.today)lbl.style.fontWeight='500';
+  lbl.textContent=n.label;
+  labelsEl.appendChild(lbl);
+});
+
+// ANALYSE CLAUDE API
+const SLEEP_DATA = {
+  date: "19 mai 2026",
+  score: 86,
+  label: "Élevé",
+  duree: "7h32",
+  score_duree: "48/50",
+  score_coucher: "29/30",
+  heure_coucher: "23h09",
+  score_interruptions: "9/20",
+  nb_reveils: 10,
+  min_perdues: 14,
+  phases: { profond: "18%", lent: "46%", rem: "24%", eveil: "12%" },
+  ressenti: "Bien, ça va — réveil correct ce matin, pas de fatigue particulière"
+};
+
+async function runAnalyse(){
+  const btn = document.getElementById('analyse-btn');
+  const loading = document.getElementById('analyse-loading');
+  const body = document.getElementById('analyse-body');
+  const errEl = document.getElementById('analyse-error');
+
+  btn.style.display = 'none';
+  loading.style.display = 'flex';
+  body.style.display = 'none';
+  errEl.style.display = 'none';
+
+  const prompt = `Tu es un expert du sommeil. Voici les données de nuit de Djaden pour le ${SLEEP_DATA.date} :
+
+- Score global : ${SLEEP_DATA.score}/100 (${SLEEP_DATA.label})
+- Durée : ${SLEEP_DATA.duree} (${SLEEP_DATA.score_duree})
+- Heure de coucher : ${SLEEP_DATA.heure_coucher} (${SLEEP_DATA.score_coucher})
+- Interruptions : ${SLEEP_DATA.score_interruptions} — ${SLEEP_DATA.nb_reveils} réveils, ${SLEEP_DATA.min_perdues} min perdues
+- Phases : Profond ${SLEEP_DATA.phases.profond}, Lent ${SLEEP_DATA.phases.lent}, Paradoxal/REM ${SLEEP_DATA.phases.rem}, Éveil ${SLEEP_DATA.phases.eveil}
+- Ressenti au réveil : ${SLEEP_DATA.ressenti}
+
+Fais une analyse experte, bienveillante et personnalisée en 3 courts paragraphes :
+1. Ce qui s'est bien passé cette nuit
+2. Le point principal à améliorer (les interruptions)
+3. Un conseil concret et actionnable pour cette nuit
+
+Réponds en français, ton direct et expert, sans titres ni bullet points. Maximum 120 mots au total.`;
+
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+    const data = await res.json();
+    if(data.content && data.content[0] && data.content[0].text){
+      const text = data.content[0].text.trim();
+      // Format in paragraphs
+      const paras = text.split(/\n\n+/).filter(p=>p.trim());
+      body.innerHTML = paras.map(p=>`<p>${p.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')}</p>`).join('');
+      body.style.display = 'block';
+      loading.style.display = 'none';
+      btn.textContent = '↺ Régénérer';
+      btn.style.display = 'flex';
+      btn.style.alignItems = 'center';
+      btn.style.justifyContent = 'center';
+      btn.style.gap = '6px';
+    } else {
+      throw new Error('Réponse inattendue');
+    }
+  } catch(e){
+    loading.style.display = 'none';
+    errEl.textContent = 'Impossible de générer l\'analyse. Vérifie ta connexion.';
+    errEl.style.display = 'block';
+    btn.style.display = 'flex';
+  }
+}
+</script>
+</body>
+</html>
